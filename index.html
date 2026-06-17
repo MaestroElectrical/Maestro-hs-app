@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Maestro Electrical — H&S App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+.topbar{background:#1F3864;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar h1{color:#fff;font-size:16px;font-weight:600;flex:1}
+.topbar .back{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0;line-height:1}
+.logo{width:34px;height:34px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1F3864;flex-shrink:0}
+.content{padding:14px;flex:1}
+.greeting{padding:14px 16px 10px;background:#fff;border-bottom:1px solid #e8e8e8}
+.greeting .name{font-size:15px;font-weight:600;color:#1F3864}
+.greeting .sub{font-size:12px;color:#888;margin-top:2px}
+.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.nav-card{background:#fff;border-radius:14px;padding:16px 14px;cursor:pointer;border:1px solid #e8e8e8;text-align:left;transition:transform 0.1s,box-shadow 0.1s}
+.nav-card:active{transform:scale(0.97)}
+.nav-card:hover{box-shadow:0 2px 12px rgba(0,0,0,0.09)}
+.nav-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px}
+.nav-icon.blue{background:#E6F1FB}
+.nav-icon.red{background:#FCEBEB}
+.nav-icon.green{background:#EAF3DE}
+.nav-icon.amber{background:#FAEEDA}
+.nav-card h3{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.nav-card p{font-size:11px;color:#888}
+.info-bar{margin:0 12px 12px;background:#E6F1FB;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#185FA5}
+.info-bar span{flex:1}
+.form-body{padding:14px;flex:1}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+.field input,.field select,.field textarea{width:100%;font-size:15px;border:1.5px solid #e0e0e0;border-radius:10px;padding:11px 13px;background:#fff;color:#1a1a1a;font-family:inherit;outline:none;transition:border-color 0.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#2E74B5}
+.field textarea{min-height:80px;resize:vertical}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#2E74B5;padding:14px 0 8px;border-top:1px solid #f0f0f0;margin-top:4px}
+.check-list{display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1.5px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#fff;transition:border-color 0.15s,background 0.15s}
+.check-item input[type=checkbox]{width:18px;height:18px;accent-color:#1F3864;flex-shrink:0}
+.check-item span{font-size:14px;color:#1a1a1a}
+.check-item.checked{border-color:#2E74B5;background:#f0f6ff}
+.radio-list{display:flex;flex-direction:column;gap:8px}
+.radio-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1.5px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#fff}
+.radio-item input[type=radio]{width:18px;height:18px;accent-color:#1F3864;flex-shrink:0}
+.radio-item span{font-size:14px;color:#1a1a1a}
+.radio-item.selected{border-color:#2E74B5;background:#f0f6ff}
+.sig-pad{border:1.5px solid #e0e0e0;border-radius:10px;background:#fafafa;position:relative;overflow:hidden;touch-action:none}
+.sig-pad canvas{display:block;width:100%;height:110px}
+.sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#bbb;pointer-events:none}
+.sig-clear{position:absolute;top:8px;right:10px;background:none;border:none;font-size:12px;color:#999;cursor:pointer}
+.submit-btn{width:100%;background:#1F3864;color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;transition:background 0.2s}
+.submit-btn:active{background:#2E74B5}
+.risk-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;margin-top:6px}
+.risk-low{background:#EAF3DE;color:#3B6D11}
+.risk-mod{background:#FAEEDA;color:#854F0B}
+.risk-high{background:#FCEBEB;color:#A32D2D}
+.photo-btn{border:1.5px dashed #c0c0c0;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:#fafafa;width:100%;color:#888;font-size:14px;font-family:inherit}
+.photo-preview{background:#f0f6ff;border:1.5px solid #2E74B5;border-radius:10px;padding:10px 13px;display:flex;align-items:center;gap:10px;font-size:13px;color:#185FA5}
+.success-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+.success-icon{width:72px;height:72px;background:#EAF3DE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 20px}
+.success-wrap h2{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:8px}
+.success-wrap p{font-size:14px;color:#666;margin-bottom:6px}
+.success-detail{background:#f5f5f5;border-radius:10px;padding:14px;text-align:left;font-size:13px;color:#555;line-height:1.9;margin:16px 0 24px;width:100%}
+.home-btn{background:none;border:1.5px solid #d0d0d0;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer;color:#1a1a1a;font-family:inherit}
+.records-btn{background:#1F3864;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:100%}
+.records-list{display:flex;flex-direction:column;gap:10px}
+.record-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e8e8e8}
+.record-card .rec-type{font-size:11px;font-weight:600;text-transform:uppercase;color:#2E74B5;margin-bottom:4px}
+.record-card .rec-job{font-size:14px;font-weight:600;color:#1a1a1a}
+.record-card .rec-meta{font-size:12px;color:#888;margin-top:3px}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.empty-state{text-align:center;padding:40px 20px;color:#aaa;font-size:14px}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e8e8e8}
+.tab{flex:1;padding:12px;text-align:center;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:#1F3864;border-bottom-color:#1F3864}
+</style>
+</head>
+<body>
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div class="topbar">
+    <div class="logo">ME</div>
+    <h1>Maestro Electrical</h1>
+    <span style="font-size:20px;color:#fff">🔔</span>
+  </div>
+  <div class="greeting">
+    <div class="name">H&amp;S App</div>
+    <div class="sub" id="home-date"></div>
+  </div>
+  <div class="nav-grid">
+    <button class="nav-card" onclick="go('prestart')">
+      <div class="nav-icon blue">✅</div>
+      <h3>Daily pre-start</h3>
+      <p>Before work begins</p>
+    </button>
+    <button class="nav-card" onclick="go('incident')">
+      <div class="nav-icon red">⚠️</div>
+      <h3>Report incident</h3>
+      <p>Near miss or TWC</p>
+    </button>
+    <button class="nav-card" onclick="go('inspection')">
+      <div class="nav-icon green">🏗️</div>
+      <h3>Site inspection</h3>
+      <p>Weekly checklist</p>
+    </button>
+    <button class="nav-card" onclick="go('vehicle')">
+      <div class="nav-icon amber">🚐</div>
+      <h3>Vehicle check</h3>
+      <p>Pre-use inspection</p>
+    </button>
+  </div>
+  <div class="info-bar">
+    <span>📋</span>
+    <span>Records save locally on this device. Tap <strong>View Records</strong> to see all submissions.</span>
+  </div>
+  <div style="padding:0 12px 12px">
+    <button class="records-btn" onclick="go('records')">📂 View Records</button>
+  </div>
+</div>
+<!-- PRE-START -->
+<div id="prestart" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Daily pre-start</h1>
+  </div>
+  <div class="form-body">
+    <div class="field"><label>Date</label><input type="date" id="ps-date"></div>
+    <div class="field"><label>Job / Site</label><input type="text" id="ps-job" placeholder="e.g. JOB-2401 — 14 Main St, Rolleston"></div>
+    <div class="field"><label>Supervisor</label><input type="text" id="ps-supervisor" placeholder="Name"></div>
+    <div class="section-label">Critical risks for today's work</div>
+    <div class="field">
+      <div class="check-list" id="ps-risks">
+        <label class="check-item"><input type="checkbox" value="Working at height / ladders"><span>Working at height / ladders</span></label>
+        <label class="check-item"><input type="checkbox" value="Electrical isolation required"><span>Electrical isolation required</span></label>
+        <label class="check-item"><input type="checkbox" value="Working near powerlines"><span>Working near powerlines</span></label>
+        <label class="check-item"><input type="checkbox" value="Asbestos risk (pre-1999 building)"><span>Asbestos risk (pre-1999 building)</span></label>
+        <label class="check-item"><input type="checkbox" value="Confined / restricted space"><span>Confined / restricted space</span></label>
+        <label class="check-item"><input type="checkbox" value="Working alone"><span>Working alone</span></label>
+        <label class="check-item"><input type="checkbox" value="Manual handling"><span>Manual handling</span></label>
+        <label class="check-item"><input type="checkbox" value="Chemical / hazardous substances"><span>Chemical / hazardous substances</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Controls in place</label><textarea id="ps-controls" placeholder="Describe controls for the risks identified above..."></textarea></div>
+    <div class="field"><label>Hazards or concerns to flag?</label><textarea id="ps-hazards" placeholder="Optional — anything needing attention..."></textarea></div>
+    <div class="section-label">Workers on site</div>
+    <div class="field"><input type="text" id="ps-workers" placeholder="Names separated by commas"></div>
+    <div class="section-label">Supervisor signature</div>
+    <div class="field">
+      <div class="sig-pad"><canvas id="sig-ps" height="110"></canvas><span class="sig-hint" id="sig-ps-hint">Sign here</span><button class="sig-clear" onclick="clearSig('ps')">Clear</button></div>
+    </div>
+    <button class="submit-btn" onclick="submitForm('prestart')">Submit pre-start ›</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+<!-- INCIDENT -->
+<div id="incident" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Incident / near miss (TWC)</h1>
+  </div>
+  <div class="form-body">
+    <div class="field">
+      <label>Type of report</label>
+      <div class="radio-list">
+        <label class="radio-item"><input type="radio" name="inc-type" value="Near miss"><span>Near miss</span></label>
+        <label class="radio-item"><input type="radio" name="inc-type" value="Hazard"><span>Hazard report</span></label>
+        <label class="radio-item"><input type="radio" name="inc-type" value="Accident / injury"><span>Accident / injury</span></label>
+        <label class="radio-item"><input type="radio" name="inc-type" value="Serious (notifiable)"><span>Serious incident (notifiable)</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Job / Site</label><input type="text" id="inc-job" placeholder="e.g. JOB-2401 — 14 Main St"></div>
+    <div class="field"><label>Date &amp; time</label><input type="datetime-local" id="inc-datetime"></div>
+    <div class="field"><label>What happened?</label><textarea id="inc-what" placeholder="Describe the event in your own words..."></textarea></div>
+    <div class="field">
+      <label>Consequence (actual or potential)</label>
+      <div class="radio-list">
+        <label class="radio-item"><input type="radio" name="inc-con" value="Insignificant"><span>Insignificant — minor graze, no injury</span></label>
+        <label class="radio-item"><input type="radio" name="inc-con" value="Minor"><span>Minor — small injury, no offsite treatment</span></label>
+        <label class="radio-item"><input type="radio" name="inc-con" value="Moderate"><span>Moderate — injury needing medical treatment</span></label>
+        <label class="radio-item"><input type="radio" name="inc-con" value="Major"><span>Major — broken bones / hospital</span></label>
+        <label class="radio-item"><input type="radio" name="inc-con" value="Catastrophic"><span>Catastrophic — death or permanent injury</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Likelihood of recurrence</label><select id="inc-likelihood" onchange="calcRisk()"><option value="">Select...</option><option>Rare</option><option>Unlikely</option><option>Possible</option><option>Likely</option><option>Almost certain</option></select></div>
+    <div class="field" id="risk-result" style="display:none"><label>Risk rating</label><span id="risk-badge" class="risk-tag"></span><p id="risk-action" style="font-size:13px;color:#666;margin-top:8px"></p></div>
+    <div class="field">
+      <label>Photo of scene</label>
+      <div id="photo-area">
+        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="photoAdded()">
+        <button class="photo-btn" onclick="document.getElementById('photo-input').click()">📷 Take or attach photo</button>
+      </div>
+    </div>
+    <div class="field"><label>Reported by</label><input type="text" id="inc-reporter" placeholder="Your name"></div>
+    <div class="section-label">Immediate actions taken</div>
+    <div class="field"><textarea id="inc-actions" placeholder="What did you do immediately after the incident?"></textarea></div>
+    <button class="submit-btn" onclick="submitForm('incident')">Submit report ›</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+<!-- INSPECTION -->
+<div id="inspection" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Weekly site inspection</h1>
+  </div>
+  <div class="form-body">
+    <div class="field"><label>Job / Site</label><input type="text" id="insp-job" placeholder="e.g. JOB-2401 — 14 Main St"></div>
+    <div class="field"><label>Date</label><input type="date" id="insp-date"></div>
+    <div class="section-label">PPE &amp; Access</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="insp-ppe" value="All workers wearing hi-vis and safety boots"><span>All workers wearing hi-vis and safety boots</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-ppe" value="PPE appropriate for tasks"><span>PPE appropriate for tasks</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-ppe" value="Site access is safe and controlled"><span>Site access is safe and controlled</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-ppe" value="Site signage in place"><span>Site signage in place</span></label>
+      </div>
+    </div>
+    <div class="section-label">Electrical &amp; Equipment</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="insp-elec" value="All equipment tested and tagged"><span>All equipment tested, tagged and in good condition</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-elec" value="RCDs in use and tested"><span>RCDs in use and tested</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-elec" value="Faulty equipment tagged out"><span>Faulty equipment tagged out of service</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-elec" value="Isolation procedure followed"><span>Isolation procedure followed where required</span></label>
+      </div>
+    </div>
+    <div class="section-label">Working at Height</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="insp-height" value="Ladders inspected and used correctly"><span>Ladders inspected and used correctly</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-height" value="Harnesses within 6-month check"><span>Harnesses inspected and within 6-month check</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-height" value="4m clearance from powerlines"><span>4m clearance from powerlines maintained</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-height" value="Scaffold tagged and checked"><span>Scaffold tagged and checked before use</span></label>
+      </div>
+    </div>
+    <div class="section-label">Housekeeping</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="insp-house" value="Site is tidy and materials stored safely"><span>Site is tidy, materials stored safely</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-house" value="No trip hazards"><span>No trip hazards</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-house" value="First aid kit on site and stocked"><span>First aid kit on site and stocked</span></label>
+        <label class="check-item"><input type="checkbox" name="insp-house" value="Fire extinguisher present"><span>Fire extinguisher present in vehicle</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Actions required</label><textarea id="insp-actions" placeholder="Note any items that need follow-up..."></textarea></div>
+    <div class="section-label">Supervisor signature</div>
+    <div class="field">
+      <div class="sig-pad"><canvas id="sig-insp" height="110"></canvas><span class="sig-hint" id="sig-insp-hint">Sign here</span><button class="sig-clear" onclick="clearSig('insp')">Clear</button></div>
+    </div>
+    <button class="submit-btn" onclick="submitForm('inspection')">Submit inspection ›</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+<!-- VEHICLE -->
+<div id="vehicle" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Vehicle pre-use check</h1>
+  </div>
+  <div class="form-body">
+    <div class="field"><label>Vehicle</label><select id="veh-vehicle"><option value="">Select vehicle...</option><option>Van — NZ123ABC</option><option>Ute — NZ456DEF</option><option>Van — NZ789GHI</option></select></div>
+    <div class="field"><label>Date</label><input type="date" id="veh-date"></div>
+    <div class="section-label">Exterior check</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="veh-ext" value="No visible damage"><span>No visible damage to body or windows</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-ext" value="Tyres look OK"><span>Tyres look OK (no damage or flat)</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-ext" value="All lights and indicators working"><span>All lights and indicators working</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-ext" value="Mirrors intact and adjustable"><span>Mirrors intact and adjustable</span></label>
+      </div>
+    </div>
+    <div class="section-label">Interior &amp; Engine</div>
+    <div class="field">
+      <div class="check-list">
+        <label class="check-item"><input type="checkbox" name="veh-int" value="No dashboard warning lights"><span>No dashboard warning lights</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-int" value="Fuel level adequate"><span>Fuel level adequate</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-int" value="Brakes feel normal"><span>Brakes feel normal</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-int" value="First aid kit present"><span>First aid kit present</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-int" value="Fire extinguisher present"><span>Fire extinguisher present</span></label>
+        <label class="check-item"><input type="checkbox" name="veh-int" value="WOF and rego current"><span>WOF and rego current (visual check)</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Driver name</label><input type="text" id="veh-driver" placeholder="Your name"></div>
+    <div class="field"><label>Any faults to report?</label><textarea id="veh-faults" placeholder="Describe any issues found, or leave blank if none..."></textarea></div>
+    <button class="submit-btn" onclick="submitForm('vehicle')">Submit check ›</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+<!-- RECORDS -->
+<div id="records" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Records</h1>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="filterRecords('all',this)">All</div>
+    <div class="tab" onclick="filterRecords('prestart',this)">Pre-starts</div>
+    <div class="tab" onclick="filterRecords('incident',this)">Incidents</div>
+    <div class="tab" onclick="filterRecords('inspection',this)">Inspections</div>
+  </div>
+  <div class="content"><div id="records-list"></div></div>
+</div>
+<!-- SUCCESS -->
+<div id="success" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('home')">‹</button>
+    <h1>Submitted</h1>
+  </div>
+  <div class="success-wrap">
+    <div class="success-icon">✅</div>
+    <h2 id="success-title">Done!</h2>
+    <p id="success-msg">Your record has been saved.</p>
+    <div class="success-detail" id="success-detail"></div>
+    <button class="records-btn" onclick="go('records')">📂 View all records</button>
+    <button class="home-btn" onclick="go('home')">Back to home</button>
+  </div>
+</div>
+<script>
+var sigCtx={},sigDrawing={},sigHasMark={};
+function go(screen){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.getElementById(screen).classList.add('active');window.scrollTo(0,0);if(screen==='records')loadRecords('all')}
+window.addEventListener('load',function(){var now=new Date();document.getElementById('home-date').textContent=now.toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'});var today=now.toISOString().split('T')[0];['ps-date','insp-date','veh-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=today});var dtEl=document.getElementById('inc-datetime');if(dtEl)dtEl.value=now.toISOString().slice(0,16);initSig('ps');initSig('insp')});
+document.querySelectorAll('.check-item').forEach(function(item){item.addEventListener('change',function(){item.classList.toggle('checked',item.querySelector('input').checked)})});
+document.querySelectorAll('.radio-item').forEach(function(item){item.addEventListener('change',function(){var name=item.querySelector('input').name;document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){r.closest('.radio-item').classList.remove('selected')});item.classList.add('selected')})});
+function initSig(id){var canvas=document.getElementById('sig-'+id);if(!canvas)return;canvas.width=canvas.offsetWidth||320;var ctx=canvas.getContext('2d');sigCtx[id]=ctx;sigDrawing[id]=false;sigHasMark[id]=false;ctx.strokeStyle='#1F3864';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';function getPos(e){var r=canvas.getBoundingClientRect();var src=e.touches?e.touches[0]:e;return{x:(src.clientX-r.left)*(canvas.width/r.width),y:(src.clientY-r.top)*(canvas.height/r.height)}}function start(e){e.preventDefault();sigDrawing[id]=true;sigHasMark[id]=true;var p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);document.getElementById('sig-'+id+'-hint').style.display='none'}function move(e){e.preventDefault();if(!sigDrawing[id])return;var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke()}function end(){sigDrawing[id]=false}canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end)}
+function clearSig(id){var canvas=document.getElementById('sig-'+id);if(!canvas)return;sigCtx[id].clearRect(0,0,canvas.width,canvas.height);sigHasMark[id]=false;document.getElementById('sig-'+id+'-hint').style.display=''}
+function getSigData(id){if(!sigHasMark[id])return null;return document.getElementById('sig-'+id).toDataURL()}
+function calcRisk(){var v=document.getElementById('inc-likelihood').value;var el=document.getElementById('risk-result');if(!v){el.style.display='none';return}el.style.display='block';var map={'Rare':{label:'Low',cls:'risk-low',msg:'TWC form only. File and monitor.'},'Unlikely':{label:'Low – Moderate',cls:'risk-low',msg:'TWC with follow-up actions.'},'Possible':{label:'Moderate',cls:'risk-mod',msg:'TWC with actions. Discuss at next toolbox talk.'},'Likely':{label:'High',cls:'risk-high',msg:'Formal investigation required. Contact HSO.'},'Almost certain':{label:'Extreme',cls:'risk-high',msg:'STOP WORK. Notify director immediately. May be notifiable to WorkSafe NZ.'}};var r=map[v];var badge=document.getElementById('risk-badge');badge.textContent=r.label;badge.className='risk-tag '+r.cls;document.getElementById('risk-action').textContent=r.msg}
+function photoAdded(){var file=document.getElementById('photo-input').files[0];if(!file)return;document.getElementById('photo-area').innerHTML='<div class="photo-preview">📎 '+file.name+' attached</div>'}
+function getChecked(name){return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(el){return el.value}).join(', ')}
+function getCheckboxes(containerId){return Array.from(document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')).map(function(el){return el.value}).join(', ')}
+function getRadio(name){var el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value:''}
+function saveRecord(record){var records=JSON.parse(localStorage.getItem('maestro-hs')||'[]');record.id=Date.now();record.savedAt=new Date().toISOString();records.unshift(record);localStorage.setItem('maestro-hs',JSON.stringify(records));return record}
+function getRecords(){return JSON.parse(localStorage.getItem('maestro-hs')||'[]')}
+function submitForm(type){var record={type:type};var title,detail;if(type==='prestart'){record.job=document.getElementById('ps-job').value||'No job entered';record.date=document.getElementById('ps-date').value;record.supervisor=document.getElementById('ps-supervisor').value;record.risks=getCheckboxes('ps-risks');record.controls=document.getElementById('ps-controls').value;record.hazards=document.getElementById('ps-hazards').value;record.workers=document.getElementById('ps-workers').value;record.signature=getSigData('ps');title='Pre-start submitted!';detail='Job: '+record.job+'\nDate: '+record.date+'\nSupervisor: '+record.supervisor+'\nRisks flagged: '+(record.risks||'None')+'\nWorkers: '+(record.workers||'Not entered')}else if(type==='incident'){record.incType=getRadio('inc-type');record.job=document.getElementById('inc-job').value||'No job entered';record.datetime=document.getElementById('inc-datetime').value;record.what=document.getElementById('inc-what').value;record.consequence=getRadio('inc-con');record.likelihood=document.getElementById('inc-likelihood').value;var badge=document.getElementById('risk-badge');record.riskRating=badge?badge.textContent:'';record.reporter=document.getElementById('inc-reporter').value;record.actions=document.getElementById('inc-actions').value;title='Report submitted!';detail='Type: '+(record.incType||'Not selected')+'\nJob: '+record.job+'\nRisk rating: '+(record.riskRating||'Not calculated')+'\nReported by: '+(record.reporter||'Not entered')}else if(type==='inspection'){record.job=document.getElementById('insp-job').value||'No job entered';record.date=document.getElementById('insp-date').value;record.ppe=getChecked('insp-ppe');record.elec=getChecked('insp-elec');record.height=getChecked('insp-height');record.house=getChecked('insp-house');record.actions=document.getElementById('insp-actions').value;record.signature=getSigData('insp');var totalChecks=document.querySelectorAll('[name^="insp-"]').length;var passedChecks=document.querySelectorAll('[name^="insp-"]:checked').length;record.score=Math.round((passedChecks/totalChecks)*100);title='Inspection submitted!';detail='Job: '+record.job+'\nDate: '+record.date+'\nScore: '+record.score+'% pass\nActions required: '+(record.actions||'None noted')}else if(type==='vehicle'){record.vehicle=document.getElementById('veh-vehicle').value||'Not selected';record.date=document.getElementById('veh-date').value;record.ext=getChecked('veh-ext');record.interior=getChecked('veh-int');record.driver=document.getElementById('veh-driver').value;record.faults=document.getElementById('veh-faults').value;title='Vehicle check submitted!';detail='Vehicle: '+record.vehicle+'\nDriver: '+(record.driver||'Not entered')+'\nDate: '+record.date+'\nFaults: '+(record.faults||'None reported')}saveRecord(record);document.getElementById('success-title').textContent=title;document.getElementById('success-msg').textContent='Record saved to this device.';document.getElementById('success-detail').textContent=detail;go('success')}
+var currentFilter='all';
+function filterRecords(type,tab){currentFilter=type;document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});if(tab)tab.classList.add('active');loadRecords(type)}
+function loadRecords(filter){var records=getRecords();if(filter&&filter!=='all')records=records.filter(function(r){return r.type===filter});var list=document.getElementById('records-list');if(records.length===0){list.innerHTML='<div class="empty-state">No records yet.<br>Submit a form to see it here.</div>';return}var typeLabels={prestart:'Pre-start',incident:'Incident',inspection:'Site inspection',vehicle:'Vehicle check'};var typeBadges={prestart:'badge-blue',incident:'badge-red',inspection:'badge-green',vehicle:'badge-amber'};list.innerHTML=records.map(function(r){var label=typeLabels[r.type]||r.type;var badge=typeBadges[r.type]||'badge-blue';var job=r.job||r.vehicle||'';var date=r.date||(r.datetime?r.datetime.split('T')[0]:'')||r.savedAt.split('T')[0];var sub='';if(r.type==='incident')sub=r.incType||'';if(r.type==='inspection')sub='Score: '+(r.score||0)+'%';if(r.type==='prestart')sub='Supervisor: '+(r.supervisor||'N/A');if(r.type==='vehicle')sub='Driver: '+(r.driver||'N/A');return'<div class="record-card"><div class="rec-type"><span class="badge '+badge+'">'+label+'</span></div><div class="rec-job">'+job+'</div><div class="rec-meta">'+date+(sub?'  ·  '+sub:'')+'</div></div>'}).join('')}
+</script>
+</body>
+</html>
